@@ -85,6 +85,32 @@
                     }
                 }
             })
+
+            f.on("down_button_pressed", () => {
+                if (getScheduledFloors(false).includes(f.floorNum())) {
+                    return
+                }
+
+                if (idleEs.size) {
+                    // make an idle elevator go to it
+                    // for now we just pick a random elevator from the set. TODO: pick the closest idle elevator
+                    let e = Array.from(idleEs)[0];
+                    idleEs.delete(e);
+                    e.addToQueue(f.floorNum());
+                    
+                    e.goingUpIndicator(false);
+                    e.goingDownIndicator(true);
+                } else {
+                    // find the lowest elevator above this floor that is also going down, and add it to its queue
+                    let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() >= f.floorNum());
+
+                    if (validEs.length) {
+                        // only add it if we have a valid elevator to add
+                        // for now we just pick a random elevator from the list. TODO: pick the highest valid elevator
+                        validEs[0].addToQueue(f.floorNum());
+                    }
+                }
+            })
         })
     },
     update: function(dt, es, fs) {
