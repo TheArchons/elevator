@@ -78,8 +78,7 @@
             if (idleEs.size) {
                 console.log("idle elevator found, using that")
                 // make an idle elevator go to it
-                // for now we just pick a random elevator from the set. TODO: pick the closest idle elevator
-                let e = Array.from(idleEs)[0];
+                let e = Array.from(idleEs).reduce((closestE, e) => Math.abs(closestE.currentFloor() - f.floorNum()) > Math.abs(e.currentFloor() - f.floorNum()) ? e : closestE);
                 console.log(`${e} is idle, using that`)
                 idleEs.delete(e);
                 e.addToQueue(f.floorNum());
