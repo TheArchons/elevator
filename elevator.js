@@ -27,7 +27,8 @@
 
 
         Idle:
-            Add it to a set of idle elevators so it can be used
+            Add it to a set of idle elevators so it can be used later
+            Go to the ground floor since it is most likely that people are waiting there
 
         Stopped at floor:
 
@@ -119,7 +120,11 @@
                 e.addToQueue(fNum)
             })
 
-            e.on("idle", () => idleEs.add(e));
+            e.on("idle", () => {
+                idleEs.add(e);
+                // idle elevators should wait at the ground floor
+                e.goToFloor(0);
+            });
 
             e.on("stopped_at_floor", (floorNum) => {
                 if (floorNum === 0) {
@@ -156,10 +161,6 @@
                     });
                     e.checkDestinationQueue();
                 }
-            })
-
-            e.on("passing_floor", (f, direction) => {
-
             })
         });
 
