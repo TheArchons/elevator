@@ -69,10 +69,9 @@
             return scheduledFs;
         }
 
-        function upButtonPressed(f) {
-            // console.log("Up button pressed");
-            if (getScheduledFloors(true).has(f.floorNum())) {
-                // console.log("Already Scheduled, skipping.")
+        function buttonPressed(f, isUp) {
+            if (getScheduledFloors(isUp).has(f.floorNum())) {
+                console.log("Already Scheduled, skipping.")
                 return
             }
 
@@ -81,57 +80,28 @@
                 // make an idle elevator go to it
                 // for now we just pick a random elevator from the set. TODO: pick the closest idle elevator
                 let e = Array.from(idleEs)[0];
-                // console.log(`${e} is idle, using that`)
+                console.log(`${e} is idle, using that`)
                 idleEs.delete(e);
                 e.addToQueue(f.floorNum());
                 
-                e.goingUpIndicator(true);
-                e.goingDownIndicator(false);
+                e.goingUpIndicator(isUp);
+                e.goingDownIndicator(!isUp);
             } else {
-                // find the highest elevator below this floor that is also going up, and add it to its queue
-                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum() && e.loadFactor() < fullLimit);
+                let validEs = es.filter(e => 
+                    (isUp === e.goingUpIndicator())
+                    && (isUp ? e.currentFloor() < f.floorNum() : e.currentFloor() > f.floorNum())
+                    && e.loadFactor() < fullLimit);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
-                    // pick the highest valid elevator
-                    let e = validEs.reduce((minE, e) => e.currentFloor() > minE.currentFloor() ? minE : e, validEs[0]);
-                    console.log(`elevator ${e} is the highest elevator going that way, using that`)
+                    let e = isUp ?
+                        validEs.reduce((minE, e) => e.currentFloor() > minE.currentFloor() ? minE : e, validEs[0])
+                        : validEs.reduce((minE, e) => e.currentFloor() < minE.currentFloor() ? e : minE, validEs[0]);
+                    console.log(`elevator ${e} is the best elevator going that way, using that`)
                     e.addToQueue(f.floorNum());
                 } else {
                     // console.log("No valid elevator, trying again in 0.1s")
-                    setTimeout(() => upButtonPressed(f), 100); // couldn't assign any elevators, try assigning again later
-                }
-            }
-
-            // console.log("");
-        }
-
-        function downButtonPressed(f) {
-            if (getScheduledFloors(false).has(f.floorNum())) {
-                return
-            }
-
-            if (idleEs.size) {
-                // make an idle elevator go to it
-                // for now we just pick a random elevator from the set. TODO: pick the closest idle elevator
-                let e = Array.from(idleEs)[0];
-                idleEs.delete(e);
-                e.addToQueue(f.floorNum());
-                
-                e.goingUpIndicator(false);
-                e.goingDownIndicator(true);
-            } else {
-                // find the lowest elevator above this floor that is also going down, and add it to its queue
-                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum() && e.loadFactor() < fullLimit);
-
-                if (validEs.length) {
-                    // only add it if we have a valid elevator to add
-                    // pick the lowest valid elevator
-                    let e = validEs.reduce((minE, e) => e.currentFloor() < minE.currentFloor() ? e : minE, validEs[0]);
-                    // console.log(`elevator ${e} is the lowest elevator going that way, using that`);
-                    e.addToQueue(f.floorNum());
-                } else {
-                    setTimeout(() => downButtonPressed(f), 100); // couldn't assign any elevators, try assigning again later
+                    setTimeout(() => buttonPressed(f, isUp), 100); // couldn't assign any elevators, try assigning again later
                 }
             }
         }
@@ -173,13 +143,13 @@
                             // re-press
                             let f = getFloor(floorNum)
                             if (floorNum === 0) {
-                                upButtonPressed(f);
+                                buttonPressed(f, true);
                             } else if (floorNum === numFloors) {
-                                downButtonPressed(f);
+                                buttonPressed(f, false);
                             } else if (e.goingUpIndicator()) {
-                                upButtonPressed(f);
+                                buttonPressed(f, true);
                             } else {
-                                downButtonPressed(f);
+                                buttonPressed(f, false);
                             }
 
                             return false;
@@ -197,9 +167,9 @@
         });
 
         fs.map(f => {
-            f.on("up_button_pressed", () => upButtonPressed(f))
+            f.on("up_button_pressed", () => buttonPressed(f, true))
 
-            f.on("down_button_pressed", () => downButtonPressed(f))
+            f.on("down_button_pressed", () => buttonPressed(f, false))
         })
     },
     update: function(dt, es, fs) {
