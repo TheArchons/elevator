@@ -29,15 +29,35 @@
         Idle:
             Add it to a set of idle elevators so it can be used
 
+        Stopped at floor:
 
-        At floor 0
-            Set indicator to go up since that's the only way to go
+            At floor 0
+                Set indicator to go up since that's the only way to go
 
 
-        At highest floor:
-            Set indicator to go down since that's the only way to go
+            At highest floor:
+                Set indicator to go down since that's the only way to go
+
+            If the elevator is full:
+                For each floor:
+                    If noone in the elevator has requested this floor AND we are scheduled to stop at this floor.
+                        Remove the floor from the list of scheduled floors.
+                        "repress" the button on this floor so don't forget about it
     */
     init: function(es, fs) {
+        const fullLimit = 0.75;
+        const numFloors = fs.length;
+        
+        function getFloor(floorNum) {
+            for (let f of fs) {
+                if (f.floorNum() === floorNum) {
+                    return f
+                }
+            }
+
+            return null;
+        }
+
         function getScheduledFloors(isUp) {
             // get all floors scheduled for an up/down elevator depending on isUp
             let scheduledFs = new Set();
@@ -57,6 +77,7 @@
             }
 
             if (idleEs.size) {
+                console.log("idle elevator found, using that")
                 // make an idle elevator go to it
                 // for now we just pick a random elevator from the set. TODO: pick the closest idle elevator
                 let e = Array.from(idleEs)[0];
@@ -68,7 +89,7 @@
                 e.goingDownIndicator(false);
             } else {
                 // find the highest elevator below this floor that is also going up, and add it to its queue
-                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum() && e.loadFactor() < 0.9);
+                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum() && e.loadFactor() < fullLimit);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
@@ -101,7 +122,7 @@
                 e.goingDownIndicator(true);
             } else {
                 // find the lowest elevator above this floor that is also going down, and add it to its queue
-                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum() && e.loadFactor() < 0.9);
+                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum() && e.loadFactor() < fullLimit);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
@@ -142,6 +163,36 @@
                     e.goingUpIndicator(false);
                     e.goingDownIndicator(true);
                 }
+
+                console.log(`checking if full ${e.loadFactor()} > fullLimit?`)
+                if (e.loadFactor() > fullLimit) {
+                    console.log("Elevator full, skipping...")
+                    // skip all floors that we don't unload at
+                    e.destinationQueue = e.destinationQueue.filter(floorNum => {
+                        if (!e.getPressedFloors().includes(floorNum)) {
+                            // re-press
+                            let f = getFloor(floorNum)
+                            if (floorNum === 0) {
+                                upButtonPressed(f);
+                            } else if (floorNum === numFloors) {
+                                downButtonPressed(f);
+                            } else if (e.goingUpIndicator()) {
+                                upButtonPressed(f);
+                            } else {
+                                downButtonPressed(f);
+                            }
+
+                            return false;
+                        }
+
+                        return true;
+                    });
+                    e.checkDestinationQueue();
+                }
+            })
+
+            e.on("passing_floor", (f, direction) => {
+
             })
         });
 
