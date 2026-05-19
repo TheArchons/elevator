@@ -93,7 +93,7 @@
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
-                    // for now we just pick a random elevator from the list. TODO: pick the highest valid elevator
+                    // pick the highest valid elevator
                     let e = validEs.reduce((minE, e) => e.currentFloor() > minE.currentFloor() ? minE : e, validEs[0]);
                     console.log(`elevator ${e} is the highest elevator going that way, using that`)
                     e.addToQueue(f.floorNum());
@@ -126,8 +126,8 @@
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
-                    // for now we just pick a random elevator from the list. TODO: pick the highest valid elevator
-                    let e = validEs.reduce((minE, e) => e.currentFloor() > minE.currentFloor() ? minE : e, validEs[0]);
+                    // pick the lowest valid elevator
+                    let e = validEs.reduce((minE, e) => e.currentFloor() < minE.currentFloor() ? e : minE, validEs[0]);
                     // console.log(`elevator ${e} is the lowest elevator going that way, using that`);
                     e.addToQueue(f.floorNum());
                 } else {
