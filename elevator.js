@@ -10,14 +10,14 @@
         Down Floor Button:
             If a down elevator is already scheduled to go to this floor, ignore it
             if there is an idle elevator, make idle elevator closest to this floor go to this floor (and remove it from the idle set)
-            Else find the lowest elevator above this floor that is also going down (if it exists), and add it to its queue
+            Else find the lowest elevator above this floor that is also going down (if it exists) that is not full, and add it to its queue
             if such an elevator does not exist, try again in 0.01s
 
 
         Similarly for an Up Floor Button:
             If a up elevator is already scheduled to go to this floor, ignore it
             if there is an idle elevator, make idle elevator closest to this floor go to this floor (and remove it from the idle set)
-            Else find the highest elevator below this floor that is also going up (if it exists), and add it to its queue
+            Else find the highest elevator below this floor that is also going up (if it exists) that is not full, and add it to its queue
             if such an elevator does not exist, try again in 0.01s
 
         Floor Button Pressed:
@@ -66,7 +66,7 @@
                 e.goingDownIndicator(false);
             } else {
                 // find the highest elevator below this floor that is also going up, and add it to its queue
-                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum());
+                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum() && e.loadFactor() < 0.9);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
@@ -99,7 +99,7 @@
                 e.goingDownIndicator(true);
             } else {
                 // find the lowest elevator above this floor that is also going down, and add it to its queue
-                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum());
+                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum() && e.loadFactor() < 0.9);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
