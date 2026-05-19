@@ -42,14 +42,16 @@
             // get all floors scheduled for an up/down elevator depending on isUp
             let scheduledFs = new Set();
 
-            return es
+            es
             .filter(e => isUp ? e.goingUpIndicator() : e.goingDownIndicator())
             .map(e => scheduledFs.add(...e.destinationQueue))
+
+            return scheduledFs;
         }
 
         function upButtonPressed(f) {
             // console.log("Up button pressed");
-            if (getScheduledFloors(true).includes(f.floorNum())) {
+            if (getScheduledFloors(true).has(f.floorNum())) {
                 // console.log("Already Scheduled, skipping.")
                 return
             }
@@ -84,7 +86,7 @@
         }
 
         function downButtonPressed(f) {
-            if (getScheduledFloors(false).includes(f.floorNum())) {
+            if (getScheduledFloors(false).has(f.floorNum())) {
                 return
             }
 
