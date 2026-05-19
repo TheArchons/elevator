@@ -69,7 +69,7 @@
                 e.goingDownIndicator(false);
             } else {
                 // find the highest elevator below this floor that is also going up, and add it to its queue
-                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum() && e.loadFactor() < 0.9 && e.maxPassengerCount() <= 6);
+                let validEs = es.filter(e => e.goingUpIndicator() && e.currentFloor() < f.floorNum() && e.loadFactor() < 0.9 && false);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
@@ -102,7 +102,7 @@
                 e.goingDownIndicator(true);
             } else {
                 // find the lowest elevator above this floor that is also going down, and add it to its queue
-                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum() && e.loadFactor() < 0.9 && e.maxPassengerCount() <= 6);
+                let validEs = es.filter(e => e.goingDownIndicator() && e.currentFloor() > f.floorNum() && e.loadFactor() < 0.9 && false);
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
@@ -130,14 +130,18 @@
             e.on("floor_button_pressed", fNum => {
                 // could be more efficient with a binary search and insertion for O(n), but the number of floors is small anyway
                 e.addToQueue(fNum)
+                e.goingUpIndicator(false);
+                e.goingDownIndicator(true);
             })
 
-            if (e.maxPassengerCount() <= 6) {
+            if (false) {
                 // small elevator
                 e.on("idle", () => idleEs.add(e));
             } else {
                 // big elevator
-                e.on("idle", () => e.goToFloor(0));
+                e.on("idle", () => {
+                    e.goToFloor(0);
+                });
             }
             
             e.on("stopped_at_floor", (floorNum) => {
