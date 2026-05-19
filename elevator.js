@@ -93,9 +93,7 @@
 
                 if (validEs.length) {
                     // only add it if we have a valid elevator to add
-                    let e = isUp ?
-                        validEs.reduce((minE, e) => e.currentFloor() > minE.currentFloor() ? minE : e, validEs[0])
-                        : validEs.reduce((minE, e) => e.currentFloor() < minE.currentFloor() ? e : minE, validEs[0]);
+                    let e = validEs.reduce((minE, e) => e.loadFactor() > minE.loadFactor() ? minE : e, validEs[0]);
                     console.log(`elevator ${e} is the best elevator going that way, using that`)
                     e.addToQueue(f.floorNum());
                 } else {
